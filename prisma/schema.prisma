@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  brands Brand[]
+}
+
+model Brand {
+  id             String       @id @default(cuid())
+  name           String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  competitors    Competitor[]
+  targetKeywords TargetKeyword[]
+}
+
+model Competitor {
+  id      String @id @default(cuid())
+  name    String
+  brandId String
+  brand   Brand  @relation(fields: [brandId], references: [id])
+}
+
+model TargetKeyword {
+  id      String @id @default(cuid())
+  keyword String
+  brandId String
+  brand   Brand  @relation(fields: [brandId], references: [id])
+
+  auditLogs AiAuditLog[]
+}
+
+model AiAuditLog {
+  id                  String        @id @default(cuid())
+  keywordId           String
+  keyword             TargetKeyword @relation(fields: [keywordId], references: [id])
+  date                DateTime      @default(now())
+  aiModelName         String
+  recommendationRank  Int?
+  sentiment           String?
+  parsedCompetitors   String?       // JSON string or comma-separated
+  status              String        // Highly Recommended, Briefly Mentioned, Not Mentioned
+}
